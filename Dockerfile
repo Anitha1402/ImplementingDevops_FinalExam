@@ -15,3 +15,5 @@ EXPOSE 5000
 
 # Run the app using Gunicorn
 CMD ["gunicorn", "-w", "2", "-b", "0.0.0.0:5000", "app:app"]
+
+#trying to trigger the changes
