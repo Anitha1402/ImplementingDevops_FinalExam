@@ -1,0 +1,23 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - echo Logging in to Amazon ECR...
+      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 727646474370.dkr.ecr.us-east-1.amazonaws.com
+      - REPO_URI=727646474370.dkr.ecr.us-east-1.amazonaws.com/simple-docker-service-0ea73719f87f  
+
+  build:
+    commands:
+      - echo Building Docker image...
+      - docker build -t $REPO_URI:latest .   # Builds the Docker image with the tag "latest"
+      - docker push $REPO_URI:latest         # Pushes the Docker image to ECR
+
+  post_build:
+    commands:
+      - echo Writing imagedefinitions.json...
+      - printf '[{"name":"simple-docker-service","imageUri":"%s"}]' $REPO_URI:latest > imagedefinitions.json  # Creates the image definition file for ECS
+
+artifacts:
+  files:
+    - imagedefinitions.json  # Defines the artifact that will be passed to the next step (ECS deploy)

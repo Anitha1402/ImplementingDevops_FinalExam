@@ -1,0 +1,66 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+
+  # ECR repository
+  MyECRImage:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: simple-docker-service-0ea73719f87f
+
+  # CodePipeline
+  MyPipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      RoleArn: arn:aws:iam::727646474370:role/MohanFinalExamImplementingDevops
+      Stages:
+        # Source stage: CodeCommit (source repository)
+        - Name: Source
+          Actions:
+            - Name: SourceAction
+              ActionTypeId:
+                Category: Source
+                Owner: AWS
+                Provider: CodeCommit
+                Version: 1
+              OutputArtifacts:
+                - Name: SourceOutput
+              Configuration:
+                RepositoryName: ImplementingDevops_FinalExam  # Replace with your actual CodeCommit repository name
+                BranchName: master                           # Replace with your actual branch name
+
+        # Build stage: CodeBuild (build action)
+        - Name: Build
+          Actions:
+            - Name: BuildAction
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              InputArtifacts:
+                - Name: SourceOutput
+              OutputArtifacts:
+                - Name: BuildOutput
+              Configuration:
+                ProjectName: SimpleDockerProject-0ea73719f87f    # Replace with your actual CodeBuild project name
+
+        # Deploy stage: ECS (deploy to ECS cluster and service)
+        - Name: Deploy
+          Actions:
+            - Name: DeployAction
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Provider: ECS
+                Version: 1
+              InputArtifacts:
+                - Name: BuildOutput
+              Configuration:
+                ClusterName: MohanFinalExamCluster             # Replace with your ECS cluster name
+                ServiceName: simple-docker-service            # Replace with your ECS service name
+                ImageDefinitions: '[{"name":"container-name","imageUri":"727646474370.dkr.ecr.us-east-1.amazonaws.com/simple-docker-service-0ea73719f87f:latest"}]'  # ECR URI for your image
+
+Outputs:
+  PipelineName:
+    Description: "CodePipeline Name"
+    Value: !Ref MyPipeline
